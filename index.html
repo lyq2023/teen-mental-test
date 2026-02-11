@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>青少年心理健康自评</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+    body {
+      background: linear-gradient(135deg, #e0f7fa, #e8f5e9);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+      color: #00796b;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    .intro {
+      text-align: center;
+      margin-bottom: 25px;
+      line-height: 1.6;
+      color: #555;
+    }
+    .question {
+      margin-bottom: 25px;
+      padding: 15px;
+      background: #f8fdff;
+      border-left: 4px solid #4db6ac;
+      border-radius: 8px;
+    }
+    .question h3 {
+      margin-bottom: 12px;
+      color: #00695c;
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .option {
+      display: block;
+      padding: 12px;
+      background: #e0f2f1;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .option:hover {
+      background: #b2dfdb;
+      transform: translateX(4px);
+    }
+    .option input {
+      margin-right: 10px;
+    }
+    .btn {
+      display: block;
+      width: 200px;
+      margin: 30px auto 20px;
+      padding: 14px;
+      background: #4db6ac;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #26a69a;
+    }
+    .result {
+      text-align: center;
+      padding: 30px 20px;
+      display: none;
+    }
+    .score-level {
+      font-size: 24px;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+    .low { color: #388e3c; }
+    .medium { color: #f57c00; }
+    .high { color: #d32f2f; }
+    .advice {
+      line-height: 1.7;
+      margin: 20px 0;
+      padding: 15px;
+      background: #f1f8e9;
+      border-radius: 12px;
+      color: #555;
+    }
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #888;
+      font-size: 14px;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px 15px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="quiz">
+      <h1>青少年心理健康自评</h1>
+      <p class="intro">本测评面向16-22岁青少年，共10题，帮助你了解近期在<strong>学习动力、情绪状态、退学想法</strong>方面的感受。<br>所有结果仅显示在你设备上，<strong>不会被保存或上传</strong>。</p>
+
+      <!-- 题目将通过JS动态生成 -->
+    </div>
+
+    <div id="result" class="result">
+      <h2>你的测评结果</h2>
+      <p>总分：<span id="total-score"></span></p>
+      <p class="score-level" id="level-text"></p>
+      <div class="advice" id="advice-text"></div>
+      <button class="btn" onclick="restartQuiz()">重新测试</button>
+    </div>
+
+    <footer>
+      温馨提示：本工具仅为自我了解，不能替代专业心理评估。如有困扰，请联系学校心理老师或拨打心理援助热线。
+    </footer>
+  </div>
+
+  <script>
+    const questions = [
+      "最近一个月，我对上学或学习感到强烈的抵触或厌恶。",
+      "我经常觉得生活没有意义，或对未来感到绝望。",
+      "我有认真考虑过退学或放弃学业的想法。",
+      "即使休息充足，我也常常感到疲惫、提不起劲。",
+      "我很难集中注意力听课或完成作业。",
+      "我感到孤独，觉得没人理解我，包括家人和朋友。",
+      "我对以前喜欢的事情（如爱好、社交）失去了兴趣。",
+      "我容易烦躁、易怒，或情绪波动很大。",
+      "我有伤害自己的想法，或觉得‘消失’会更好。",
+      "我觉得自己是个失败者，或让家人失望。"
+    ];
+
+    let scores = {};
+
+    function renderQuiz() {
+      const quizDiv = document.getElementById('quiz');
+      quizDiv.innerHTML = `
+        <h1>青少年心理健康自评</h1>
+        <p class="intro">本测评面向16-22岁青少年，共10题，帮助你了解近期在<strong>学习动力、情绪状态、退学想法</strong>方面的感受。<br>所有结果仅显示在你设备上，<strong>不会被保存或上传</strong>。</p>
+      `;
+
+      questions.forEach((q, i) => {
+        quizDiv.innerHTML += `
+          <div class="question">
+            <h3>${i + 1}. ${q}</h3>
+            <div class="options">
+              <label class="option"><input type="radio" name="q${i}" value="0" required> 几乎没有</label>
+              <label class="option"><input type="radio" name="q${i}" value="1"> 有时有</label>
+              <label class="option"><input type="radio" name="q${i}" value="2"> 经常有</label>
+              <label class="option"><input type="radio" name="q${i}" value="3"> 几乎总是</label>
+            </div>
+          </div>
+        `;
+      });
+
+      quizDiv.innerHTML += `<button class="btn" onclick="submitQuiz()">查看结果</button>`;
+    }
+
+    function submitQuiz() {
+      let total = 0;
+      for (let i = 0; i < questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+          alert("请回答所有问题！");
+          return;
+        }
+        total += parseInt(selected.value);
+      }
+
+      // 显示结果
+      document.getElementById('total-score').innerText = total;
+      
+      let level, advice, levelClass;
+      if (total <= 10) {
+        level = "低风险";
+        levelClass = "low";
+        advice = "你目前的心理状态总体良好。继续保持规律作息、适度运动和与人交流。如果偶尔情绪低落，是正常的，给自己一点时间调整。";
+      } else if (total <= 20) {
+        level = "中等风险";
+        levelClass = "medium";
+        advice = "你可能正经历一些情绪困扰或学习压力。建议主动与信任的老师、家长或朋友聊聊，也可以尝试写日记梳理情绪。学校心理辅导室是很好的资源。";
+      } else {
+        level = "较高风险";
+        levelClass = "high";
+        advice = "你的情绪和学习状态可能已受到较明显影响。请务必重视——这不是你的错。建议尽快联系学校心理老师，或拨打心理援助热线（如北京24小时热线：010-82951332）。你值得被支持。";
+      }
+
+      document.getElementById('level-text').innerText = level;
+      document.getElementById('level-text').className = "score-level " + levelClass;
+      document.getElementById('advice-text').innerText = advice;
+
+      document.getElementById('quiz').style.display = 'none';
+      document.getElementById('result').style.display = 'block';
+    }
+
+    function restartQuiz() {
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('quiz').style.display = 'block';
+      renderQuiz();
+    }
+
+    // 初始化
+    renderQuiz();
+  </script>
+</body>
+</html>
